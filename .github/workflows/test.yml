@@ -18,7 +18,12 @@ jobs:
       with:
         node-version: '18'  # Specify the Node.js version you're using
 
-    # Step to restore the WhatsApp auth cache
+    - name: Install Puppeteer dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxkbcommon-x11-0 libgbm-dev
+
+    # Restore WhatsApp auth cache
     - name: Restore WhatsApp auth cache
       id: auth-cache-restore
       uses: actions/cache@v3
@@ -27,7 +32,8 @@ jobs:
         key: whatsapp-auth-${{ github.ref }}  # Cache key based on branch/ref
         restore-keys: |
           whatsapp-auth-
-    # Step to restore the WhatsApp session cache
+
+    # Restore WhatsApp session cache
     - name: Restore WhatsApp session cache
       id: session-cache-restore
       uses: actions/cache@v3
@@ -36,8 +42,17 @@ jobs:
         key: whatsapp-session-${{ github.ref }}  # Cache key based on branch/ref
         restore-keys: |
           whatsapp-session-
+
     - name: Install dependencies
       run: npm install
+
+    # Debugging: Ensure auth and session directories are in place
+    - name: Verify auth and session directories
+      run: |
+        mkdir -p .wwebjs_auth
+        mkdir -p .wwebjs_cache
+        ls -la .wwebjs_auth || echo "No .wwebjs_auth found"
+        ls -la .wwebjs_cache || echo "No .wwebjs_cache found"
 
     - name: Run the bot
       run: node messagingBot.js
@@ -48,14 +63,14 @@ jobs:
         GROUP_CHAT_ID: ${{ secrets.GROUP_CHAT_ID }}
         ADMIN_NUMBER: ${{ secrets.ADMIN_NUMBER }}
 
-    # Step to update the WhatsApp auth cache if changes are made
+    # Save WhatsApp auth cache after the bot run
     - name: Save WhatsApp auth cache
       uses: actions/cache@v3
       with:
         path: .wwebjs_auth  # Path to the auth session
         key: whatsapp-auth-${{ github.ref }}  # Keep the same cache key to update the existing cache
 
-    # Step to update the WhatsApp session cache if changes are made
+    # Save WhatsApp session cache after the bot run
     - name: Save WhatsApp session cache
       uses: actions/cache@v3
       with:
@@ -68,4 +83,3 @@ jobs:
 
     - name: Check session cache directory
       run: ls -la .wwebjs_cache || echo "No .wwebjs_cache found"
-      

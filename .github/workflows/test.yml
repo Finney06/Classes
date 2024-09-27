@@ -3,7 +3,7 @@ name: Birthday Bot
 on:
   workflow_dispatch:  # Allows manual triggering of the workflow
   schedule:
-    - cron: '05 9 * * *'  # Runs the job at 3 AM UTC every day
+    - cron: '10 2 * * *'  # Runs the job at 3 AM UTC every day
 
 jobs:
   run-bot:
@@ -27,7 +27,6 @@ jobs:
         key: whatsapp-auth-${{ github.ref }}  # Cache key based on branch/ref
         restore-keys: |
           whatsapp-auth-
-
     # Step to restore the WhatsApp session cache
     - name: Restore WhatsApp session cache
       id: session-cache-restore
@@ -37,7 +36,6 @@ jobs:
         key: whatsapp-session-${{ github.ref }}  # Cache key based on branch/ref
         restore-keys: |
           whatsapp-session-
-
     - name: Install dependencies
       run: npm install
 
@@ -70,3 +68,4 @@ jobs:
 
     - name: Check session cache directory
       run: ls -la .wwebjs_cache || echo "No .wwebjs_cache found"
+      

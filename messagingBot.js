@@ -3,33 +3,48 @@ require('dotenv').config();
 
 const qrcode = require('qrcode-terminal');
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
-// const fs = require('fs');
 
 const client = new Client({
     authStrategy: new LocalAuth()
 });
 
+const adminNumber = process.env.ADMIN_NUMBER; // Admin's WhatsApp ID
+
 client.on('qr', (qr) => {
     qrcode.generate(qr, { small: true });
+    console.log('QR Code generated');
+    
+    // Notify admin that the QR code has been generated
+    // sendAdminMessage('QR Code generated. Please scan to initialize the bot.');
 });
 
 client.on('ready', () => {
     console.log('Client is ready!');
-    sendBirthdayMessages();
+    
+    // Notify admin that the bot is ready
+    sendAdminMessage('The WhatsApp bot is now ready and running.');
+    sendBirthdayMessages(); // Proceed with sending birthday messages
 });
 
 client.on('disconnected', (reason) => {
     console.log('Bot was disconnected. Reason:', reason);
+    
+    // Notify admin of disconnection
+    sendAdminMessage(`The bot was disconnected. Reason: ${reason}`);
+});
 
-    // Send a WhatsApp message to yourself or an admin
-    client.sendMessage(adminNumber, `The bot was disconnected. Reason: ${reason}`);
+// Catch errors and notify admin
+client.on('error', (error) => {
+    console.error('Client encountered an error:', error);
+
+    // Notify admin of any error
+    sendAdminMessage(`The bot encountered an error: ${error.message}`);
 });
 
 // Start the WhatsApp client
 client.initialize();
 
 const birthdayMessages = require('./birthdayMessages.js');
-const adminNumber = process.env.ADMIN_NUMBER;
 
 // Function to fetch Airtable records and send birthday messages
 async function sendBirthdayMessages() {
@@ -37,7 +52,7 @@ async function sendBirthdayMessages() {
         const airtableApiKey = process.env.AIRTABLE_API_KEY; 
         const baseId = process.env.AIRTABLE_BASE_ID; 
         const tableName = process.env.AIRTABLE_TABLE_ID; 
-        const groupNumber =  process.env.GROUP_CHAT_ID;
+        const groupNumber = process.env.GROUP_CHAT_ID; // Group Chat ID for WhatsApp Group
         const apiUrl = `https://api.airtable.com/v0/${baseId}/${tableName}`;
 
         const response = await fetch(apiUrl, {
@@ -63,8 +78,6 @@ async function sendBirthdayMessages() {
             };
         });
 
-        // console.
-
         // Get today's date
         const today = new Date();
         const todayMonth = today.getMonth() + 1;
@@ -80,7 +93,6 @@ async function sendBirthdayMessages() {
             const whatsappNumber = `${user.whatsappNumber}@c.us`;  // Create user's WhatsApp ID
             const picture = user.picture;
             const nickname = user.nickname;
-            // const userName = user.name; 
 
             if (parseInt(dobMonth) === todayMonth && parseInt(dobDay) === todayDay) {
                 console.log(`Today is ${user.name}'s birthday!`);
@@ -96,8 +108,6 @@ async function sendBirthdayMessages() {
 
                 // Personalized message for DM
                 const directMessage = `${randomMessage} Happy Birthday, ${nickname}! 🎉🎁`;
-                // console.log(directMessage)
-
 
                 // Send to individual user
                 if (picture) {
@@ -108,8 +118,6 @@ async function sendBirthdayMessages() {
 
                 // Personalized message for the group
                 const groupMessage = `${randomMessage} Happy Birthday @${user.whatsappNumber}! 🎉🎂`;
-                // console.log(groupMessage)
-
 
                 if (picture) {
                     await sendMedia(groupNumber, picture, groupMessage, [whatsappNumber]);
@@ -121,17 +129,21 @@ async function sendBirthdayMessages() {
 
         if (!messagesSent) {
             console.log('No birthdays today.');
+            sendAdminMessage('No birthdays to celebrate today.');
         } else {
             console.log('All messages sent.');
+            sendAdminMessage('All birthday messages have been sent.');
         }
 
         setTimeout(() => {
             console.log('Shutting down the client...');
-            //client.destroy();
+            sendAdminMessage('The bot is shutting down after task completion.');
+            client.destroy();
         }, 60000);  // 1 minute delay before destroying the client
         
     } catch (error) {
         console.error('Error:', error);
+        sendAdminMessage(`Error encountered while sending birthday messages: ${error.message}`);
     }
 }
 
@@ -143,8 +155,7 @@ async function sendMedia(targetNumber, picture, message, mentions = []) {
         console.log(`Media sent successfully to ${targetNumber}`);
     } catch (error) {
         console.error(`Failed to send message to:`, error);
-          // Notify yourself/admin on failure
-            //  await client.sendMessage(adminNumber, `Failed to send birthday message to ${userName}. Error: ${error.message}`);
+        sendAdminMessage(`Failed to send media to ${targetNumber}: ${error.message}`);
     }
 }
 
@@ -155,7 +166,16 @@ async function sendMessage(targetNumber, message, mentions = []) {
         console.log(`Message sent successfully to ${targetNumber}`);
     } catch (error) {
         console.error('Error sending message:', error);
-         // Notify yourself/admin on failure
-            //  await client.sendMessage(adminNumber, `Failed to send birthday message to ${userName}. Error: ${error.message}`);
+        sendAdminMessage(`Error sending message to ${targetNumber}: ${error.message}`);
+    }
+}
+
+// Function to send logs and updates to the admin
+async function sendAdminMessage(message) {
+    try {
+        await client.sendMessage(adminNumber, message);
+        console.log(`Notification sent to admin: ${message}`);
+    } catch (error) {
+        console.error('Failed to notify admin:', error);
     }
 }

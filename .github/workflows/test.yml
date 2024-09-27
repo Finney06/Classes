@@ -1,1 +1,70 @@
+name: Birthday Bot
 
+on:
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'  # Specify the Node.js version you're using
+
+    # Step to restore the WhatsApp auth cache
+    - name: Restore WhatsApp auth cache
+      id: auth-cache-restore
+      uses: actions/cache@v3
+      with:
+        path: .wwebjs_auth  # Path to the auth session
+        key: whatsapp-auth-${{ github.ref }}  # Cache key based on branch/ref
+        restore-keys: |
+          whatsapp-auth-
+
+    # Step to restore the WhatsApp session cache
+    - name: Restore WhatsApp session cache
+      id: session-cache-restore
+      uses: actions/cache@v3
+      with:
+        path: .wwebjs_cache  # Path to the session cache
+        key: whatsapp-session-${{ github.ref }}  # Cache key based on branch/ref
+        restore-keys: |
+          whatsapp-session-
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run the bot
+      run: node messagingBot.js
+      env:
+        AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+        AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+        AIRTABLE_TABLE_ID: ${{ secrets.AIRTABLE_TABLE_ID }}
+        GROUP_CHAT_ID: ${{ secrets.GROUP_CHAT_ID }}
+        ADMIN_NUMBER: ${{ secrets.ADMIN_NUMBER }}
+
+    # Step to update the WhatsApp auth cache if changes are made
+    - name: Save WhatsApp auth cache
+      uses: actions/cache@v3
+      with:
+        path: .wwebjs_auth  # Path to the auth session
+        key: whatsapp-auth-${{ github.ref }}  # Keep the same cache key to update the existing cache
+
+    # Step to update the WhatsApp session cache if changes are made
+    - name: Save WhatsApp session cache
+      uses: actions/cache@v3
+      with:
+        path: .wwebjs_cache  # Path to the session cache
+        key: whatsapp-session-${{ github.ref }}  # Keep the same cache key to update the existing cache
+
+    # Optional step: Debugging to check if the cache directories exist
+    - name: Check auth cache directory
+      run: ls -la .wwebjs_auth || echo "No .wwebjs_auth found"
+
+    - name: Check session cache directory
+      run: ls -la .wwebjs_cache || echo "No .wwebjs_cache found"

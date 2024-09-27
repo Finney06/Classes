@@ -127,7 +127,7 @@ async function sendBirthdayMessages() {
 
         setTimeout(() => {
             console.log('Shutting down the client...');
-            client.destroy();
+            //client.destroy();
         }, 60000);  // 1 minute delay before destroying the client
         
     } catch (error) {

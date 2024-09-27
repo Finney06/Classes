@@ -3,7 +3,7 @@ name: Birthday Bot
 on:
   workflow_dispatch:  # Allows manual triggering of the workflow
   schedule:
-    - cron: '05 8 * * *'  # Runs the job at 3 AM UTC every day
+    - cron: '05 9 * * *'  # Runs the job at 3 AM UTC every day
 
 jobs:
   run-bot:

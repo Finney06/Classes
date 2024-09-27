@@ -135,10 +135,14 @@ async function sendBirthdayMessages() {
             sendAdminMessage('All birthday messages have been sent.');
         }
 
-        setTimeout(() => {
-            console.log('Shutting down the client...');
-            sendAdminMessage('The bot is shutting down after task completion.');
-            client.destroy();
+        setTimeout(async () => {
+            try {
+                console.log('Shutting down the client...');
+                // await sendAdminMessage('The bot is shutting down after task completion.');
+                process.exit(0); // Shut down the client after sending the message
+            } catch (error) {
+                console.error('Error during shutdown:', error);
+            }
         }, 90000);  // 1 minute delay before destroying the client
         
     } catch (error) {

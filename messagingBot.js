@@ -139,7 +139,7 @@ async function sendBirthdayMessages() {
             console.log('Shutting down the client...');
             sendAdminMessage('The bot is shutting down after task completion.');
             client.destroy();
-        }, 60000);  // 1 minute delay before destroying the client
+        }, 90000);  // 1 minute delay before destroying the client
         
     } catch (error) {
         console.error('Error:', error);

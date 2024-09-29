@@ -42,22 +42,16 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
   client.on("remote_session_saved", () => {
     console.log("Remote session has been saved.");
    
-     try {
-      console.log('Shutting down the client...');
-      await sendAdminMessage('The bot is shutting down after task completion.');
-      
-      // Optional: Close other connections like MongoDB
-      await mongoose.disconnect(); 
-  
-      // Delay only the exit process by 60 seconds
-      setTimeout(() => {
-        console.log('Exiting the process...');
+    setTimeout(async () => {
+      try {
+        console.log('Shutting down the client...');
+        await sendAdminMessage('The bot is shutting down after task completion.');
+        await mongoose.disconnect();  // Ensure MongoDB connection is closed
         process.exit(0); // Shut down the client after task completion
-      }, 60000); // 60 seconds delay
-      
-    } catch (error) {
-      console.error('Error during shutdown:', error);
-    }
+      } catch (error) {
+        console.error('Error during shutdown:', error);
+      }
+    }, 60000); 
   });
 
   // Initialize WhatsApp client

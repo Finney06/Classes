@@ -1,0 +1,40 @@
+name: Daily WhatsApp Bot
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every day
+    - cron: "0 0 * * *"
+  workflow_dispatch:  # Allows manual trigger of the action
+  push:
+    branches:
+      - main
+
+jobs:
+  whatsapp-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run WhatsApp Bot
+      env:
+        AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+        AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+        AIRTABLE_TABLE_ID: ${{ secrets.AIRTABLE_TABLE_ID }}
+        GROUP_CHAT_ID: ${{ secrets.GROUP_CHAT_ID }}
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        ADMIN_NUMBER: ${{ secrets.ADMIN_NUMBER }}
+      run: node index.js
+
+    - name: Shut down the action
+      run: |
+        echo "Process completed. Shutting down."

@@ -21,5 +21,6 @@
     "@types/puppeteer": "^7.0.4",
     "puppeteer": "^22.10.0",
     "whatsapp-web.js": "^1.25.0"
+    "wwebjs-mongo": "^1.1.0"
   }
 }

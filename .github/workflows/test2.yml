@@ -33,8 +33,6 @@ jobs:
         GROUP_CHAT_ID: ${{ secrets.GROUP_CHAT_ID }}
         MONGODB_URI: ${{ secrets.MONGODB_URI }}
         ADMIN_NUMBER: ${{ secrets.ADMIN_NUMBER }}
-      run: node index.js
+      run: node test.js
 
-    - name: Shut down the action
-      run: |
-        echo "Process completed. Shutting down."
+  
